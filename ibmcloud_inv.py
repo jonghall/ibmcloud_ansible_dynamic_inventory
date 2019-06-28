@@ -35,6 +35,7 @@ ti_version = '0.5'
 ######################################################################
 
 import json, configparser, os, requests, urllib
+from distutils.util import strtobool
 from collections import defaultdict
 from argparse import ArgumentParser
 
@@ -75,12 +76,12 @@ def parse_params():
 
         config.read(filepath)
 
-        args.group_by_region = config["ibmcloud"]["group_by_region"]
-        args.group_by_zone = config["ibmcloud"]["group_by_zone"]
-        args.group_by_platform = config["ibmcloud"]["group_by_platform"]
-        args.group_by_vpc = config["ibmcloud"]["group_by_vpc"]
-        args.group_by_security_group = config["ibmcloud"]["group_by_security_group"]
-        args.group_by_resource_group = config["ibmcloud"]["group_by_resource_group"]
+        args.group_by_region = strtobool(config["ibmcloud"]["group_by_region"])
+        args.group_by_zone = strtobool(config["ibmcloud"]["group_by_zone"])
+        args.group_by_platform = strtobool(config["ibmcloud"]["group_by_platform"])
+        args.group_by_vpc = strtobool(config["ibmcloud"]["group_by_vpc"])
+        args.group_by_security_group = strtobool(config["ibmcloud"]["group_by_security_group"])
+        args.group_by_resource_group = strtobool(config["ibmcloud"]["group_by_resource_group"])
 
         args.iamtoken = getiamtoken(config['api']['apikey'])
         args.apiversion = "?version=" + config["api"]["apiversion"] + "&generation=" + config["api"]["generation"]
