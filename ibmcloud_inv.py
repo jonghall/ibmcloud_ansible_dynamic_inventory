@@ -82,12 +82,15 @@ def parse_params():
         args.group_by_vpc = strtobool(config["ibmcloud"]["group_by_vpc"])
         args.group_by_security_group = strtobool(config["ibmcloud"]["group_by_security_group"])
         args.group_by_resource_group = strtobool(config["ibmcloud"]["group_by_resource_group"])
+        args.all_instances = strtobool(config['ibmcloud']['all_instances'])
+        args.ansible_host_variable = config['ibmcloud']['ansible_host_variable']
 
         args.iamtoken = getiamtoken(config['api']['apikey'])
         args.apiversion = "?version=" + config["api"]["apiversion"] + "&generation=" + config["api"]["generation"]
         args.generation = config['api']['generation']
         args.region = config['api']['region']
         region = apigetregion(args)
+
         if region["status"] == 'available':
             if args.generation == "1":
                 args.iaas_endpoint = region["endpoint"]
@@ -97,8 +100,6 @@ def parse_params():
         else:
             print ("Region not available or invalid.")
             quit()
-        args.ansible_host_variable = config['ibmcloud']['ansible_host_variable']
-        args.all_instances = config['ibmcloud']['all_instances']
 
     return args
 
@@ -283,69 +284,67 @@ class IBMCloudInventory():
         instances = apigetinstances(self.args)
 
         for instance in instances:
-            name = instance['name']
-            primary_network_interface = apigetinterface(self.args,instance["primary_network_interface"]["href"])
-            resource_group = apigetresourcegroup(self.args, instance["resource_group"]["href"])
+            if instance["status"] == "running" or self.args.all_instances:
+                name = instance['name']
+                primary_network_interface = apigetinterface(self.args, instance["primary_network_interface"]["href"])
+                resource_group = apigetresourcegroup(self.args, instance["resource_group"]["href"])
 
-            attributes = {
-                'href': instance["href"],
-                'id': instance["id"],
-                'created_at': instance["created_at"],
-                'image': instance["image"]["name"],
-                'memory': instance["memory"],
-                'region': self.args.region,
-                'vpc': instance["vpc"]["name"],
-                'zone': instance["zone"]["name"],
-                'status': instance["status"],
-                'profile': instance["name"],
-                'resource_group_id': resource_group['id'],
-                'resource_group': resource_group["name"],
-                'primary_ipv4_address': primary_network_interface["primary_ipv4_address"],
-                'subnet': primary_network_interface["subnet"]["name"],
-                'subnet_id': primary_network_interface["subnet"]["id"],
-                'security_group': primary_network_interface["security_groups"][0]["name"],
-                'security_group_id': primary_network_interface["security_groups"][0]["id"],
-                'ansible_ssh_user': 'root',
-                'tags': None,
-            }
+                attributes = {
+                    'href': instance["href"],
+                    'id': instance["id"],
+                    'created_at': instance["created_at"],
+                    'image': instance["image"]["name"],
+                    'memory': instance["memory"],
+                    'region': self.args.region,
+                    'vpc': instance["vpc"]["name"],
+                    'zone': instance["zone"]["name"],
+                    'status': instance["status"],
+                    'profile': instance["name"],
+                    'resource_group_id': resource_group['id'],
+                    'resource_group': resource_group["name"],
+                    'primary_ipv4_address': primary_network_interface["primary_ipv4_address"],
+                    'subnet': primary_network_interface["subnet"]["name"],
+                    'subnet_id': primary_network_interface["subnet"]["id"],
+                    'security_group': primary_network_interface["security_groups"][0]["name"],
+                    'security_group_id': primary_network_interface["security_groups"][0]["id"],
+                    'ansible_ssh_user': 'root',
+                    'tags': None,
+                }
 
-            if 'cpu' in instance:
-                attributes['cpu'] = instance["cpu"]
-            else:
-                attributes['cpu'] = instance["vcpu"]
+                if 'cpu' in instance:
+                    attributes['cpu'] = instance["cpu"]
+                else:
+                    attributes['cpu'] = instance["vcpu"]
 
-            if  "floating_ips" in primary_network_interface:
-                attributes["floating_ip"] = primary_network_interface["floating_ips"][0]["address"]
+                if "floating_ips" in primary_network_interface:
+                    attributes["floating_ip"] = primary_network_interface["floating_ips"][0]["address"]
 
-            if self.args.ansible_host_variable == "private_ip":
-                attributes['ansible_host'] = primary_network_interface["primary_ipv4_address"]
-            elif self.args.ansible_host_variable == "floating_ip" and "floating_ips" in primary_network_interface:
-                attributes['ansible_host'] = primary_network_interface["floating_ips"][0]["address"]
-            else:
-                attributes['ansible_host'] = ""
+                if self.args.ansible_host_variable == "private_ip":
+                    attributes['ansible_host'] = primary_network_interface["primary_ipv4_address"]
+                elif self.args.ansible_host_variable == "floating_ip" and "floating_ips" in primary_network_interface:
+                    attributes['ansible_host'] = primary_network_interface["floating_ips"][0]["address"]
 
-            group = []
+                group = []
 
-            if self.args.group_by_region:
-                group.append(attributes["region"].translate({ord(c): '_' for c in '-'}))
+                if self.args.group_by_region:
+                    group.append(attributes["region"].translate({ord(c): '_' for c in '-'}))
 
-            if self.args.group_by_zone:
-                group.append(attributes["zone"].translate({ord(c): '_' for c in '-'}))
+                if self.args.group_by_zone:
+                    group.append(attributes["zone"].translate({ord(c): '_' for c in '-'}))
 
-            if self.args.group_by_platform:
-                group.append(attributes["image"].translate({ord(c): '_' for c in ' .-/'}))
+                if self.args.group_by_platform:
+                    group.append(attributes["image"].translate({ord(c): '_' for c in ' .-/'}))
 
-            if self.args.group_by_security_group:
-                group.append(attributes["security_group"].translate({ord(c): '_' for c in '-'}))
+                if self.args.group_by_security_group:
+                    group.append(attributes["security_group"].translate({ord(c): '_' for c in '-'}))
 
-            if self.args.group_by_vpc:
-                group.append(attributes["vpc"].translate({ord(c): '_' for c in '-'}))
+                if self.args.group_by_vpc:
+                    group.append(attributes["vpc"].translate({ord(c): '_' for c in '-'}))
 
-            if self.args.group_by_resource_group:
-                group.append(attributes['resource_group'].translate({ord(c): '_' for c in '-'}))
+                if self.args.group_by_resource_group:
+                    group.append(attributes['resource_group'].translate({ord(c): '_' for c in '-'}))
 
-
-            yield name, attributes, group
+                yield name, attributes, group
 
 if __name__ == '__main__':
 
