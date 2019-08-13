@@ -127,3 +127,4 @@ dmypy.json
 ### Ansible template
 *.retry
 
+/group_vars/all.yaml
