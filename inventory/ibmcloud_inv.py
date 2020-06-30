@@ -40,7 +40,7 @@ import json, configparser, os, requests, urllib
 from distutils.util import strtobool
 from collections import defaultdict
 from argparse import ArgumentParser
-
+from ansible.module_utils._text import to_text
 
 def parse_params():
     parser = ArgumentParser('IBM Cloud Dynamic Inventory')
@@ -57,7 +57,7 @@ def parse_params():
         try:
             # attempt to open ini file first. Only proceed if found
             # assume execution from the ansible playbook directory
-            filepath = dirpath + "/inventory/" + ini_file
+            filepath = dirpath + '/inventory/' + ini_file
             open(filepath)
 
         except FileNotFoundError:
@@ -311,7 +311,7 @@ class IBMCloudInventory():
         for group in group_hosts:
             inv_output[group] = {'hosts': group_hosts[group]}
 
-        return json.dumps(inv_output, indent=2)
+        return to_text(json.dumps(inv_output, indent=2))
 
     def get_instances(self):
 

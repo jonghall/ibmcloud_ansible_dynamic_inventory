@@ -41,5 +41,7 @@ group_by_security_group = False
 group_by_resource_group = False
 group_by_tags = True
 ```
+To use use with ansible use the `ansible-inventory` or `ansible-playbook` commands referencing the dynamic inventory directory.
 
-
+``
+ansible-inventory -i inventory --list``
