@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 # Ansible dynamic inventory for IBM Cloud VPC Infrastructure
-# Copyright (c) 2019
+# Copyright (c) 2020
 #
-ti_version = '0.5'
+ti_version = '0.8'
 # Based on dynamic inventory for IBM Cloud from steve_strutt@uk.ibm.com
 # 06-26-2019 - 1.0 - Modified to use with the IBM VPC Gen 1 / Gen 2
 #                    & RIAS API verison=2019-06-04
@@ -23,7 +23,9 @@ ti_version = '0.5'
 # [ibmcloud] section which lets you set serveral parameters on how groups
 # are created and hosts fileterd.
 #
-# The [api] section defines the apikey and region to use
+# The [api] section defines api version region to use
+#
+# IBM Cloud apiKey should be stored in env variable IC_API_KEY
 #
 # Successful execution returns groups with lists of hosts and _meta/hostvars with a detailed
 # host listing.
@@ -82,21 +84,19 @@ def parse_params():
         args.group_by_vpc = strtobool(config["ibmcloud"]["group_by_vpc"])
         args.group_by_security_group = strtobool(config["ibmcloud"]["group_by_security_group"])
         args.group_by_resource_group = strtobool(config["ibmcloud"]["group_by_resource_group"])
+        args.group_by_tags = strtobool(config["ibmcloud"]["group_by_tags"])
         args.all_instances = strtobool(config['ibmcloud']['all_instances'])
         args.ansible_host_variable = config['ibmcloud']['ansible_host_variable']
 
-        args.iamtoken = getiamtoken(config['api']['apikey'])
+        #args.iamtoken = getiamtoken(config['api']['apikey'])
+        args.iamtoken = getiamtoken(os.environ.get("IC_API_KEY"))
         args.apiversion = "?version=" + config["api"]["apiversion"] + "&generation=" + config["api"]["generation"]
         args.generation = config['api']['generation']
         args.region = config['api']['region']
         region = apigetregion(args)
 
         if region["status"] == 'available':
-            if args.generation == "1":
                 args.iaas_endpoint = region["endpoint"]
-            else:
-                # gen2 currently only supports us-south
-                args.iaas_endpoint = "https://us-south-ng.iaas.cloud.ibm.com"
         else:
             print ("Region not available or invalid.")
             quit()
@@ -143,8 +143,10 @@ def apigetregion(args):
     region = None
 
     try:
-        resp = requests.get(' https://us-south.iaas.cloud.ibm.com/v1/regions/' + args.region + args.apiversion, headers=args.iamtoken, timeout=30)
+        uri = 'https://us-south.iaas.cloud.ibm.com/v1/regions/'+args.region+args.apiversion
+        resp = requests.get(uri, headers=args.iamtoken, timeout=30)
         resp.raise_for_status()
+
     except requests.exceptions.ConnectionError as errc:
         print("Error Connecting:", errc)
         quit()
@@ -158,7 +160,6 @@ def apigetregion(args):
 
     if resp.status_code == 200:
         region = json.loads(resp.content)
-
     return region
 
 def apigetinterface(args, href):
@@ -208,6 +209,41 @@ def apigetresourcegroup(args, href):
         resourcegroup = json.loads(resp.content)
 
     return resourcegroup
+
+def apigettags(args, instancecrn):
+    ################################################
+    ## Get Instance Tag
+    ################################################
+    tags = []
+    start = 0
+    limit = 100
+    url = "https://tags.global-search-tagging.cloud.ibm.com/v3/tags?attached_to="+instancecrn+"&limit=" + str(limit)
+    while True:
+        try:
+            resp = requests.get(url, headers=args.iamtoken, timeout=30)
+            resp.raise_for_status()
+        except requests.exceptions.ConnectionError as errc:
+            print("Error Connecting:", errc)
+            quit()
+        except requests.exceptions.Timeout as errt:
+            print("Timeout Error:", errt)
+            quit()
+        except requests.exceptions.HTTPError as errb:
+            unknownapierror(resp)
+
+        if resp.status_code == 200:
+            result = json.loads(resp.content)
+            #total_count = result["total_count"]
+            tags = tags + result["items"]
+            if "next" in result:
+                url=result["next"]["href"]
+                continue
+            else:
+                break
+    taglist = []
+    for tag in tags:
+        taglist.append(tag["name"])
+    return taglist
 
 def apigetinstances(args):
     ################################################
@@ -288,7 +324,6 @@ class IBMCloudInventory():
                 name = instance['name']
                 primary_network_interface = apigetinterface(self.args, instance["primary_network_interface"]["href"])
                 resource_group = apigetresourcegroup(self.args, instance["resource_group"]["href"])
-
                 attributes = {
                     'href': instance["href"],
                     'id': instance["id"],
@@ -308,7 +343,7 @@ class IBMCloudInventory():
                     'security_group': primary_network_interface["security_groups"][0]["name"],
                     'security_group_id': primary_network_interface["security_groups"][0]["id"],
                     'ansible_ssh_user': 'root',
-                    'tags': None,
+                    'tags': apigettags(self.args, instance["crn"])
                 }
 
                 if 'cpu' in instance:
@@ -343,6 +378,10 @@ class IBMCloudInventory():
 
                 if self.args.group_by_resource_group:
                     group.append(attributes['resource_group'].translate({ord(c): '_' for c in '-'}))
+
+                if self.args.group_by_tags:
+                    for tag in attributes["tags"]:
+                        group.append(tag.translate({ord(c): '_' for c in '-'}))
 
                 yield name, attributes, group
 
