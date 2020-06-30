@@ -41,8 +41,6 @@ from distutils.util import strtobool
 from collections import defaultdict
 from argparse import ArgumentParser
 
-from ansible.module_utils._text import to_native
-from ansible.module_utils._text import to_text
 
 def parse_params():
     parser = ArgumentParser('IBM Cloud Dynamic Inventory')
