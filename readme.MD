@@ -10,10 +10,11 @@ apiversion = 2022-02-22
 region = us-south
 ```
 
-You IBM Cloud apiKey should not be stored in this file, and instead should be stored in the environment variable <b>IC_API_KEY</b><br>
-``
+You IBM Cloud apiKey should not be stored in this file, and instead should be stored in the environment variable *IC_API_KEY*
+
+```
 export IC_API_KEY=123456789a
-``
+```
 
 In the <b>[ibmcloud]</b> section, define the parameters for what instances are included in the inventory and how they are grouped.
 
@@ -38,8 +39,10 @@ group_by_security_group = False
 group_by_resource_group = False
 group_by_tags = True
 ```
+
 To use with ansible use the `ansible-inventory` or `ansible-playbook` commands referencing the dynamic inventory directory.
 
-``
+```
 ansible-inventory -i inventory --list
-``
+```
+
