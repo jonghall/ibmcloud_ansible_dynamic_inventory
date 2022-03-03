@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Ansible dynamic inventory for IBM Cloud VPC Infrastructure
 # Copyright (c) 2020
@@ -36,7 +36,7 @@ ti_version = '0.8'
 
 ######################################################################
 
-import json, configparser, os, requests, urllib
+import json, configparser, os, sys, requests, urllib
 from distutils.util import strtobool
 from collections import defaultdict
 from argparse import ArgumentParser
@@ -50,27 +50,18 @@ def parse_params():
     args = parser.parse_args()
 
     if not args.inifile:
-        dirpath = os.getcwd()
+        dirpath = os.path.dirname(os.path.realpath(sys.argv[0]))
         print()
         config = configparser.ConfigParser()
         ini_file = 'ibmcloud_inv.ini'
         try:
             # attempt to open ini file first. Only proceed if found
             # assume execution from the ansible playbook directory
-            filepath = dirpath + '/inventory/' + ini_file
+            filepath = dirpath + '/' + ini_file
             open(filepath)
 
         except FileNotFoundError:
-            try:
-                # If file is not found it may be because command is executed
-                # in inventory directory
-                filepath = dirpath + "/" + ini_file
-                open(filepath)
-
-            except FileNotFoundError:
-                raise Exception("Unable to find or open specified ini file")
-            else:
-                config.read(filepath)
+            raise Exception("Unable to find or open specified ini file")
         else:
             config.read(filepath)
 
