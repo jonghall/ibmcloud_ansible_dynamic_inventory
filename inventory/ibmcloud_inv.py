@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 # Ansible dynamic inventory for IBM Cloud VPC Infrastructure
-# Copyright (c) 2020
+# Copyright (c) 2022
 #
-ti_version = '0.8'
+ti_version = '1.1'
 # Based on dynamic inventory for IBM Cloud from steve_strutt@uk.ibm.com
-# 06-26-2019 - 1.0 - Modified to use with the IBM VPC Gen 1 / Gen 2
-#                    & RIAS API verison=2019-06-04
+# 03-03-2020 - 1.1 - Incorporated changes from community & updated api version
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -51,7 +50,6 @@ def parse_params():
 
     if not args.inifile:
         dirpath = os.path.dirname(os.path.realpath(sys.argv[0]))
-        print()
         config = configparser.ConfigParser()
         ini_file = 'ibmcloud_inv.ini'
         try:
@@ -76,18 +74,15 @@ def parse_params():
         args.group_by_tags = strtobool(config["ibmcloud"]["group_by_tags"])
         args.all_instances = strtobool(config['ibmcloud']['all_instances'])
         args.ansible_host_variable = config['ibmcloud']['ansible_host_variable']
-
-        #args.iamtoken = getiamtoken(config['api']['apikey'])
         args.iamtoken = getiamtoken(os.environ.get("IC_API_KEY"))
-        args.apiversion = "?version=" + config["api"]["apiversion"] + "&generation=" + config["api"]["generation"]
-        args.generation = config['api']['generation']
+        args.apiversion = "?version=" + config["api"]["apiversion"] + "&generation=2"
         args.region = config['api']['region']
         region = apigetregion(args)
 
         if region["status"] == 'available':
                 args.iaas_endpoint = region["endpoint"]
         else:
-            print ("Region not available or invalid.")
+            print("Region not available or invalid.")
             quit()
 
     return args
@@ -149,6 +144,7 @@ def apigetregion(args):
 
     if resp.status_code == 200:
         region = json.loads(resp.content)
+
     return region
 
 def apigetinterface(args, href):
@@ -243,7 +239,6 @@ def apigetinstances(args):
     start = 0
     limit = 100
     url = args.iaas_endpoint + '/v1/instances/' + args.apiversion + "&limit=" + str(limit)
-
     while True:
         try:
             resp = requests.get(url, headers=args.iamtoken, timeout=30)
@@ -259,10 +254,9 @@ def apigetinstances(args):
 
         if resp.status_code == 200:
             result = json.loads(resp.content)
-            #total_count = result["total_count"]
             instances = instances + result["instances"]
             if "next" in result:
-                url=result["next"]["href"]
+                url = result["next"]["href"] + '&' + args.apiversion[1:]
                 continue
             else:
                 break
