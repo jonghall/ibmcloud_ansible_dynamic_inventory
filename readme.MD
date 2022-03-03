@@ -19,10 +19,9 @@ export IC_API_KEY=123456789a
 In the <b>[ibmcloud]</b> section, define the parameters for what instances are included in the inventory and how they are grouped.
 
 <b>ansible_host_variable</b> Determines how the ansible host variable is set.
-```
-ansible_host_variable = floating_ip (Returns the Floating IP address or Public ip address of the primary interface of the instance.)
-ansible_host_variable = private_ip (Return the VPC private IP address of the primary interface of the instance.)
-```
+
+- ansible_host_variable = *floating_ip* returns the Public Floating IP address  of the primary interface of the instance.
+- ansible_host_variable = *private_ip* returns the Private VPC IP address of the primary interface of the instance.
 
 By default, only instances in the 'running' state are returned. Set <b>'all_instances = True' </b> to return all instances,
  including instances which are suspended regardless of current state.
