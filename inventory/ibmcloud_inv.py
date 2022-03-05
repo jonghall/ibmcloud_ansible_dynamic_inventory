@@ -84,6 +84,11 @@ def parse_params():
         else:
             args.group_by_image = False
 
+        if 'group_by_profile' in config["ibmcloud"]:
+            args.group_by_profile = strtobool(config["ibmcloud"]["group_by_profile"])
+        else:
+            args.group_by_profile = False
+
         if 'group_by_vpc' in config["ibmcloud"]:
             args.group_by_vpc = strtobool(config["ibmcloud"]["group_by_vpc"])
         else:
@@ -151,13 +156,6 @@ class IBMCloudInventory():
 
     def __init__(self):
         self.args = parse_params()
-        try:
-            region = vpcservice.get_region(name=self.args.region).get_result()
-        except ApiException as e:
-            print("Get region failed with status code " + str(e.code) + ": " + e.message)
-            quit()
-        # Change to regional endpoint
-        vpcservice.set_service_url(region["endpoint"]+"/v1")
 
         if self.args.version:
             print(ti_version)
@@ -174,17 +172,35 @@ class IBMCloudInventory():
         inv_output = {}
         group_hosts = defaultdict(list)
 
-        for name, attributes, groups in self.get_instances():
-            ibmcloud_hosts.append(name)
-            hosts_vars[name] = attributes
-            for group in list(groups):
-                group_hosts[group].append(name)
+        if self.args.region == "all":
+            try:
+                regions = vpcservice.list_regions().get_result()
+            except ApiException as e:
+                print("List regions failed with status code " + str(e.code) + ": " + e.message)
+                quit()
+        else:
+            try:
+                region = vpcservice.get_region(name=self.args.region).get_result()
+            except ApiException as e:
+                print("Get region failed with status code " + str(e.code) + ": " + e.message)
+                quit()
+            regions = {"regions": [region]}
 
-        for name, attributes, groups in self.get_baremetal():
-            ibmcloud_hosts.append(name)
-            hosts_vars[name] = attributes
-            for group in list(groups):
-                group_hosts[group].append(name)
+        for region in regions["regions"]:
+        # Change to regional endpoint
+            vpcservice.set_service_url(region["endpoint"]+"/v1")
+
+            for name, attributes, groups in self.get_instances():
+                ibmcloud_hosts.append(name)
+                hosts_vars[name] = attributes
+                for group in list(groups):
+                    group_hosts[group].append(name)
+
+            for name, attributes, groups in self.get_baremetal():
+                ibmcloud_hosts.append(name)
+                hosts_vars[name] = attributes
+                for group in list(groups):
+                    group_hosts[group].append(name)
 
         inv_output["All"] = {
             "hosts": ibmcloud_hosts,
@@ -270,6 +286,9 @@ class IBMCloudInventory():
 
                 if self.args.group_by_image:
                     group.append(attributes["image"].translate({ord(c): '_' for c in ' .-/'}))
+
+                if self.args.group_by_profile:
+                    group.append(attributes["profile"].translate({ord(c): '_' for c in ' .-/'}))
 
                 if self.args.group_by_security_group:
                     group.append(attributes["security_group"].translate({ord(c): '_' for c in '-'}))
@@ -363,6 +382,9 @@ class IBMCloudInventory():
 
                 if self.args.group_by_vpc:
                     group.append(attributes["vpc"].translate({ord(c): '_' for c in '-'}))
+
+                if self.args.group_by_profile:
+                    group.append(attributes["profile"].translate({ord(c): '_' for c in ' .-/'}))
 
                 if self.args.group_by_resource_group:
                     group.append(attributes['resource_group'].translate({ord(c): '_' for c in '-'}))
