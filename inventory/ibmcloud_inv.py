@@ -69,18 +69,65 @@ def parse_params():
 
         config.read(filepath)
 
-        args.group_by_region = strtobool(config["ibmcloud"]["group_by_region"])
-        args.group_by_zone = strtobool(config["ibmcloud"]["group_by_zone"])
-        args.group_by_image = strtobool(config["ibmcloud"]["group_by_image"])
-        args.group_by_vpc = strtobool(config["ibmcloud"]["group_by_vpc"])
-        args.group_by_security_group = strtobool(config["ibmcloud"]["group_by_security_group"])
-        args.group_by_resource_group = strtobool(config["ibmcloud"]["group_by_resource_group"])
-        args.group_by_resource_type = strtobool(config["ibmcloud"]["group_by_resource_type"])
-        args.group_by_placement_target = strtobool(config["ibmcloud"]["group_by_placement_target"])
-        args.group_by_tags = strtobool(config["ibmcloud"]["group_by_tags"])
-        args.all_instances = strtobool(config['ibmcloud']['all_instances'])
-        args.ansible_host_variable = config['ibmcloud']['ansible_host_variable']
-        args.region = config['api']['region']
+        if 'group_by_region' in config["ibmcloud"]:
+            args.group_by_region = strtobool(config["ibmcloud"]["group_by_region"])
+        else:
+            args.group_by_region = False
+
+        if 'group_by_region' in config["ibmcloud"]:
+            args.group_by_zone = strtobool(config["ibmcloud"]["group_by_zone"])
+        else:
+            args.group_by_zone = False
+
+        if 'group_by_image' in config["ibmcloud"]:
+            args.group_by_image = strtobool(config["ibmcloud"]["group_by_image"])
+        else:
+            args.group_by_image = False
+
+        if 'group_by_vpc' in config["ibmcloud"]:
+            args.group_by_vpc = strtobool(config["ibmcloud"]["group_by_vpc"])
+        else:
+            args.group_by_vpc = False
+
+        if 'group_by_security_group' in config["ibmcloud"]:
+            args.group_by_security_group = strtobool(config["ibmcloud"]["group_by_security_group"])
+        else:
+            args.group_by_security_group = False
+
+        if 'group_by_resource_group' in config["ibmcloud"]:
+            args.group_by_resource_group = strtobool(config["ibmcloud"]["group_by_resource_group"])
+        else:
+            args.group_by_resource_group = False
+
+        if 'group_by_resource_type' in config["ibmcloud"]:
+            args.group_by_resource_type = strtobool(config["ibmcloud"]["group_by_resource_type"])
+        else:
+            args.group_by_resource_type = False
+
+        if 'group_by_placement_target' in config["ibmcloud"]:
+            args.group_by_placement_target = strtobool(config["ibmcloud"]["group_by_placement_target"])
+        else:
+            args.group_by_placement_target = False
+
+        if 'group_by_tags' in config["ibmcloud"]:
+            args.group_by_tags = strtobool(config["ibmcloud"]["group_by_tags"])
+        else:
+            args.group_by_tages = False
+
+        if 'all_instances' in config["ibmcloud"]:
+            args.all_instances = strtobool(config['ibmcloud']['all_instances'])
+        else:
+            args.all_instance = False
+
+        if 'ansible_host_variable' in config["ibmcloud"]:
+            args.ansible_host_variable = config['ibmcloud']['ansible_host_variable']
+        else:
+            args.ansible_host_vraiable = "private_ip_address"
+
+        if 'region' in config["ibmcloud"]:
+            args.region = config['ibmcloud']['region']
+        else:
+            args.region = "all"
 
     return args
 
