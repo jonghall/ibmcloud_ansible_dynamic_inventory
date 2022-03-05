@@ -18,7 +18,7 @@ ti_version = '2.0'
 #            - Ability to query all regions by default or specify specific regions
 #            - Removal of [api] section which is not needed by the SDK
 #            - Movement of optional region variable to the [ibmcloud] section
-#            - Varoious other fixes
+#            - Various other fixes
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
