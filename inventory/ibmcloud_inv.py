@@ -9,16 +9,16 @@ ti_version = '2.0'
 # 06-20-2020 - 1.1 - Added gen2 global tagging support
 # 03-03-2022 - 1.2 - Updated libraries Incorporated changes from community & updated api version
 # 03-05-2022 - 2.0 - Added Bare Metal, additional Fields, and ability to query multiple regions
-#            - Inventory queried using IBM Cloud Virtual Private Cloud (VPC) Python SDK Version 0.10.0
-#            - Addition of IBM Cloud VPC Baremetal resource type
-#            - Addition of group by resource type
-#            - Addition of Placement Groups and the ability to group by placement group
-#            - Addition of Dedicated Host field if present
-#            - Addition of GPU fields
-#            - Ability to query all regions by default or specify specific regions
-#            - Removal of [api] section which is not needed by the SDK
-#            - Movement of optional region variable to the [ibmcloud] section
-#            - Various other fixes
+#                  - Inventory queried using IBM Cloud Virtual Private Cloud (VPC) Python SDK Version 0.10.0
+#                  - Addition of IBM Cloud VPC Baremetal resource type
+#                  - Addition of group by resource type
+#                  - Addition of Placement Groups and the ability to group by placement group
+#                  - Addition of Dedicated Host field if present
+#                  - Addition of GPU fields
+#                  - Ability to query all regions by default or specify specific regions
+#                  - Removal of [api] section which is not needed by the SDK
+#                  - Movement of optional region variable to the [ibmcloud] section
+#                  - Various other fixes
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
