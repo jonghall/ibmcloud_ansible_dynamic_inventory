@@ -3,9 +3,11 @@
 # Ansible dynamic inventory for IBM Cloud VPC Infrastructure
 # Copyright (c) 2022
 #
-ti_version = '1.1'
+ti_version = '1.2'
 # Based on dynamic inventory for IBM Cloud from steve_strutt@uk.ibm.com
-# 03-03-2020 - 1.1 - Incorporated changes from community & updated api version
+# 06-26-2019 - 1.0 - Modified to use with the IBM VPC Gen 1 / Gen 2
+# 06-20-2020 - 1.1 - Added gen2 global tagging support
+# 03-03-2022 - 1.2 - Updated libraries, Incorporated changes from community & updated api version
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
