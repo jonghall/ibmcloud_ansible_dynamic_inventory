@@ -44,7 +44,6 @@ ti_version = '2.0'
 # Validate successful operation with ansible:
 #   With - 'ansible-inventory -i inventory --list'
 #          'ansible-playbook - i inventory playbook.yaml
-
 ######################################################################
 
 import json, configparser, os, sys, requests, urllib
