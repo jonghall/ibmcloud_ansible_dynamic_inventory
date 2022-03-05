@@ -21,7 +21,7 @@ inventory of instances grouped by configurable parameters such as subnet, securi
 Your IBM Cloud apiKey should not be stored in this file, and instead should be specified as an environment variable.
 
 ```
-export IC_API_KEY=123456789a
+export IC_API_KEY=<ibmcloud apikey>
 ```
 
 In the <b>[ibmcloud]</b> section of the ibmcloud_inv.ini file defines the parameters that determine which hosts are
