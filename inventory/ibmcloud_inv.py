@@ -5,7 +5,21 @@
 #
 ti_version = '2.0'
 # Based on dynamic inventory for IBM Cloud from steve_strutt@uk.ibm.com
-# 03-03-2020 - 1.1 - Incorporated changes from community & updated api version
+# 06-26-2019 - 1.0 - Modified to use with the IBM VPC Gen 1 / Gen 2
+# 06-20-2020 - 1.1 - Added gen2 global tagging support
+# 03-03-2022 - 1.2 - Updated libraries Incorporated changes from community & updated api version
+# 03-05-2022 - 2.0 - Added Bare Metal, additional Fields, and ability to query multiple regions
+#            - Inventory queried using IBM Cloud Virtual Private Cloud (VPC) Python SDK Version 0.10.0
+#            - Addition of IBM Cloud VPC Baremetal resource type
+#            - Addition of group by resource type
+#            - Addition of Placement Groups and the ability to group by placement group
+#            - Addition of Dedicated Host field if present
+#            - Addition of GPU fields
+#            - Ability to query all regions by default or specify specific regions
+#            - Removal of [api] section which is not needed by the SDK
+#            - Movement of optional region variable to the [ibmcloud] section
+#            - Varoious other fixes
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -22,8 +36,6 @@ ti_version = '2.0'
 # [ibmcloud] section which lets you set serveral parameters on how groups
 # are created and hosts fileterd.
 #
-# The [api] section defines api version region to use
-#
 # IBM Cloud apiKey should be stored in env variable IC_API_KEY
 #
 # Successful execution returns groups with lists of hosts and _meta/hostvars with a detailed
@@ -31,7 +43,7 @@ ti_version = '2.0'
 #
 # Validate successful operation with ansible:
 #   With - 'ansible-inventory -i inventory --list'
-#
+#          'ansible-playbook - i inventory playbook.yaml
 
 ######################################################################
 
