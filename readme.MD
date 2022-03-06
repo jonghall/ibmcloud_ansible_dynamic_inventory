@@ -1,6 +1,6 @@
 ## ibmcloud_inv.py
-This Dynamic Inventory plugin for Ansible allows the IBM Cloud VPC to be queried to return a current
-inventory of instances grouped by configurable parameters such as subnet, security_group or tag.
+This Dynamic Inventory plugin for Ansible allows IBM Cloud VPC to be queried to return a current
+inventory of hosts grouped by configurable parameters such as subnet, security_group or tag.
 
 ### V2 Changes
 - Inventory queried using IBM Cloud Virtual Private Cloud (VPC) Python SDK Version 0.10.0
