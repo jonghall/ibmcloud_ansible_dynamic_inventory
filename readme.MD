@@ -4,12 +4,11 @@ inventory of hosts grouped by configurable parameters such as subnet, security_g
 
 ### V2 Changes
 - Inventory queried using IBM Cloud Virtual Private Cloud (VPC) Python SDK Version 0.10.0
-- Addition of IBM Cloud VPC Baremetal resource type
-- Addition of group by resource type
+- Addition of IBM Cloud VPC Baremetal resource type and option to group by resource type
 - Addition of Placement Groups and the ability to group by placement group
 - Addition of Dedicated Host field if present
 - Addition of GPU fields
-- Ability to query all regions by default or specify specific regions
+- Ability to query all regions by default or specify specific region
 - Removal of [api] section which is not needed by the SDK
 - Movement of optional region variable to the [ibmcloud] section
 - Varoious other fixes
