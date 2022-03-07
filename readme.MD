@@ -11,7 +11,7 @@ inventory of hosts grouped by configurable parameters such as subnet, security_g
 - Ability to query all regions by default or specify specific region
 - Removal of [api] section which is not needed by the SDK
 - Movement of optional region variable to the [ibmcloud] section
-- Varoious other fixes
+- Various other fixes
 
 ### Configuration
 
