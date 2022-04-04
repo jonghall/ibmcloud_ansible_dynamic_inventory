@@ -3,7 +3,7 @@
 # Ansible dynamic inventory for IBM Cloud VPC Infrastructure
 # Copyright (c) 2022
 #
-ti_version = '2.0'
+ti_version = '2.1'
 # Based on dynamic inventory for IBM Cloud from steve_strutt@uk.ibm.com
 # 06-26-2019 - 1.0 - Modified to use with the IBM VPC Gen 1 / Gen 2
 # 06-20-2020 - 1.1 - Added gen2 global tagging support
@@ -19,6 +19,7 @@ ti_version = '2.0'
 #                  - Removal of [api] section which is not needed by the SDK
 #                  - Movement of optional region variable to the [ibmcloud] section
 #                  - Various other fixes
+# 04-04-2022 - 2.1 - fixed handling of situation where no floating ip's used
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -138,7 +139,7 @@ def parse_params():
         if 'ansible_host_variable' in config["ibmcloud"]:
             args.ansible_host_variable = config['ibmcloud']['ansible_host_variable']
         else:
-            args.ansible_host_vraiable = "private_ip_address"
+            args.ansible_host_variable = "private_ip_address"
 
         if 'region' in config["ibmcloud"]:
             args.region = config['ibmcloud']['region']
@@ -280,12 +281,14 @@ class IBMCloudInventory():
                     attributes['gpu_count'] = instance['gpu']
 
                 if "floating_ips" in primary_network_interface:
-                    attributes["floating_ip"] = primary_network_interface["floating_ips"][0]["address"]
+                    if len(primary_network_interface["floating_ips"]) > 0:
+                        attributes["floating_ip"] = primary_network_interface["floating_ips"][0]["address"]
 
-                if self.args.ansible_host_variable == "private_ip":
+                if self.args.ansible_host_variable == "private_ip_address":
                     attributes['ansible_host'] = primary_network_interface["primary_ipv4_address"]
                 elif self.args.ansible_host_variable == "floating_ip" and "floating_ips" in primary_network_interface:
-                    attributes['ansible_host'] = primary_network_interface["floating_ips"][0]["address"]
+                    if len(primary_network_interface["floating_ips"]) > 0:
+                       attributes['ansible_host'] = primary_network_interface["floating_ips"][0]["address"]
 
                 group = []
 
@@ -373,12 +376,14 @@ class IBMCloudInventory():
                     attributes["trusted_platform_module"] = bm['trusted_platform_module']
 
                 if "floating_ips" in primary_network_interface:
-                    attributes["floating_ip"] = primary_network_interface["floating_ips"][0]["address"]
+                        if len(primary_network_interface["floating_ips"]) > 0:
+                            attributes["floating_ip"] = primary_network_interface["floating_ips"][0]["address"]
 
                 if self.args.ansible_host_variable == "private_ip":
                     attributes['ansible_host'] = primary_network_interface["primary_ipv4_address"]
                 elif self.args.ansible_host_variable == "floating_ip" and "floating_ips" in primary_network_interface:
-                    attributes['ansible_host'] = primary_network_interface["floating_ips"][0]["address"]
+                    if len(primary_network_interface["floating_ips"]) > 0:
+                        attributes['ansible_host'] = primary_network_interface["floating_ips"][0]["address"]
 
                 group = []
 
