@@ -1,4 +1,4 @@
-ansible==5.4.0
+ansible==7.0.0
 ansible-core==2.12.3
 argumentparser==1.2.1
 certifi==2021.10.8
