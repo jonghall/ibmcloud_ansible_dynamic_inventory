@@ -44,7 +44,7 @@ ti_version = '2.1'
 #
 # Validate successful operation with ansible:
 #   With - 'ansible-inventory -i inventory --list'
-#          'ansible-playbook - i inventory playbook.yaml
+#          'ansible-playbook - i inventory playbook.yamlFalse
 ######################################################################
 
 import json, configparser, os, sys, requests, urllib
@@ -64,87 +64,105 @@ def parse_params():
     parser.add_argument('--version', '-v', action='store_true', help='Show version')
     args = parser.parse_args()
 
-    if not args.inifile:
-        dirpath = os.path.dirname(os.path.realpath(sys.argv[0]))
+    if os.environ.get('IC_API_AWX', False):
         config = configparser.ConfigParser()
-        ini_file = 'ibmcloud_inv.ini'
-        try:
-            # attempt to open ini file first. Only proceed if found
-            # assume execution from the ansible playbook directory
-            filepath = dirpath + '/' + ini_file
-            open(filepath)
+        config.add_section('ibmcloud')
+        config.set('ibmcloud', 'group_by_region', os.environ.get('IC_GROUP_BY_REGION', 'False'))
+        config.set('ibmcloud', 'group_by_zone', os.environ.get('IC_GROUP_BY_ZONE', 'false')),
+        config.set('ibmcloud', 'group_by_image', os.environ.get('IC_GROUP_BY_IMAGE', 'false')),
+        config.set('ibmcloud', 'group_by_profile', os.environ.get('IC_GROUP_BY_IMAGE', 'false')),
+        config.set('ibmcloud', 'group_by_vpc', os.environ.get('IC_GROUP_BY_VPC', 'false')),
+        config.set('ibmcloud', 'group_by_security_group', os.environ.get('IC_GROUP_BY_SECURITY_GROUP', 'false')),
+        config.set('ibmcloud', 'group_by_resource_group', os.environ.get('IC_GROUP_BY_RESOURCE_GROUP', 'false')), 
+        config.set('ibmcloud', 'group_by_resource_type', os.environ.get('IC_GROUP_BY_TYPE', 'false')), 
+        config.set('ibmcloud', 'group_by_placement_target', os.environ.get('IC_GROUP_BY_PLACEMENT', 'false')),
+        config.set('ibmcloud', 'group_by_tags', os.environ.get('IC_GROUP_BY_TAGS', 'false')),
+        config.set('ibmcloud', 'all_instances', os.environ.get('IC_ALL_INSTANCES', 'false')),
+        config.set('ibmcloud', 'ansible_host_variable', os.environ.get('IC_ANSIBLE_HOST_VAR', 'private_ip_address')),
+        config.set('ibmcloud', 'region', os.environ.get('IC_API_REGION', 'all'))
 
-        except FileNotFoundError:
-            raise Exception("Unable to find or open specified ini file")
-        else:
+    else:
+        if not args.inifile:
+            dirpath = os.path.dirname(os.path.realpath(sys.argv[0]))
+            config = configparser.ConfigParser()
+            ini_file = 'ibmcloud_inv.ini'
+            try:
+                # attempt to open ini file first. Only proceed if found
+                # assume execution from the ansible playbook directory
+                filepath = dirpath + '/' + ini_file
+                open(filepath)
+
+            except FileNotFoundError:
+                raise Exception("Unable to find or open specified ini file")
+            else:
+                config.read(filepath)
+
             config.read(filepath)
 
-        config.read(filepath)
+    if 'group_by_region' in config["ibmcloud"]:
+        args.group_by_region = strtobool(config["ibmcloud"]["group_by_region"])
+    else:
+        args.group_by_region = False
 
-        if 'group_by_region' in config["ibmcloud"]:
-            args.group_by_region = strtobool(config["ibmcloud"]["group_by_region"])
-        else:
-            args.group_by_region = False
+    if 'group_by_region' in config["ibmcloud"]:
+        args.group_by_zone = strtobool(config["ibmcloud"]["group_by_zone"])
+    else:
+        args.group_by_zone = False
 
-        if 'group_by_region' in config["ibmcloud"]:
-            args.group_by_zone = strtobool(config["ibmcloud"]["group_by_zone"])
-        else:
-            args.group_by_zone = False
+    if 'group_by_image' in config["ibmcloud"]:
+        args.group_by_image = strtobool(config["ibmcloud"]["group_by_image"])
+    else:
+        args.group_by_image = False
 
-        if 'group_by_image' in config["ibmcloud"]:
-            args.group_by_image = strtobool(config["ibmcloud"]["group_by_image"])
-        else:
-            args.group_by_image = False
+    if 'group_by_profile' in config["ibmcloud"]:
+        args.group_by_profile = strtobool(config["ibmcloud"]["group_by_profile"])
+    else:
+        args.group_by_profile = False
 
-        if 'group_by_profile' in config["ibmcloud"]:
-            args.group_by_profile = strtobool(config["ibmcloud"]["group_by_profile"])
-        else:
-            args.group_by_profile = False
+    if 'group_by_vpc' in config["ibmcloud"]:
+        args.group_by_vpc = strtobool(config["ibmcloud"]["group_by_vpc"])
+    else:
+        args.group_by_vpc = False
 
-        if 'group_by_vpc' in config["ibmcloud"]:
-            args.group_by_vpc = strtobool(config["ibmcloud"]["group_by_vpc"])
-        else:
-            args.group_by_vpc = False
+    if 'group_by_security_group' in config["ibmcloud"]:
+        args.group_by_security_group = strtobool(config["ibmcloud"]["group_by_security_group"])
+    else:
+        args.group_by_security_group = False
 
-        if 'group_by_security_group' in config["ibmcloud"]:
-            args.group_by_security_group = strtobool(config["ibmcloud"]["group_by_security_group"])
-        else:
-            args.group_by_security_group = False
+    if 'group_by_resource_group' in config["ibmcloud"]:
+        args.group_by_resource_group = strtobool(config["ibmcloud"]["group_by_resource_group"])
+    else:
+        args.group_by_resource_group = False
 
-        if 'group_by_resource_group' in config["ibmcloud"]:
-            args.group_by_resource_group = strtobool(config["ibmcloud"]["group_by_resource_group"])
-        else:
-            args.group_by_resource_group = False
+    if 'group_by_resource_type' in config["ibmcloud"]:
+        args.group_by_resource_type = strtobool(config["ibmcloud"]["group_by_resource_type"])
+    else:
+        args.group_by_resource_type = False
 
-        if 'group_by_resource_type' in config["ibmcloud"]:
-            args.group_by_resource_type = strtobool(config["ibmcloud"]["group_by_resource_type"])
-        else:
-            args.group_by_resource_type = False
+    if 'group_by_placement_target' in config["ibmcloud"]:
+        args.group_by_placement_target = strtobool(config["ibmcloud"]["group_by_placement_target"])
+    else:
+        args.group_by_placement_target = False
 
-        if 'group_by_placement_target' in config["ibmcloud"]:
-            args.group_by_placement_target = strtobool(config["ibmcloud"]["group_by_placement_target"])
-        else:
-            args.group_by_placement_target = False
+    if 'group_by_tags' in config["ibmcloud"]:
+        args.group_by_tags = strtobool(config["ibmcloud"]["group_by_tags"])
+    else:
+        args.group_by_tages = False
 
-        if 'group_by_tags' in config["ibmcloud"]:
-            args.group_by_tags = strtobool(config["ibmcloud"]["group_by_tags"])
-        else:
-            args.group_by_tages = False
+    if 'all_instances' in config["ibmcloud"]:
+        args.all_instances = strtobool(config['ibmcloud']['all_instances'])
+    else:
+        args.all_instance = False
 
-        if 'all_instances' in config["ibmcloud"]:
-            args.all_instances = strtobool(config['ibmcloud']['all_instances'])
-        else:
-            args.all_instance = False
+    if 'ansible_host_variable' in config["ibmcloud"]:
+        args.ansible_host_variable = config['ibmcloud']['ansible_host_variable']
+    else:
+        args.ansible_host_variable = "private_ip_address"
 
-        if 'ansible_host_variable' in config["ibmcloud"]:
-            args.ansible_host_variable = config['ibmcloud']['ansible_host_variable']
-        else:
-            args.ansible_host_variable = "private_ip_address"
-
-        if 'region' in config["ibmcloud"]:
-            args.region = config['ibmcloud']['region']
-        else:
-            args.region = "all"
+    if 'region' in config["ibmcloud"]:
+        args.region = config['ibmcloud']['region']
+    else:
+        args.region = "all"
 
     return args
 
