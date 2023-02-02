@@ -259,7 +259,7 @@ class IBMCloudInventory():
                     'resource_type': instance["resource_type"],
                     'resource_group_id': resource_group['id'],
                     'resource_group': resource_group["name"],
-                    'primary_ipv4_address': primary_network_interface["primary_ipv4_address"],
+                    'primary_ipv4_address': primary_network_interface["primary_ip"]["address"],
                     'subnet': primary_network_interface["subnet"]["name"],
                     'subnet_id': primary_network_interface["subnet"]["id"],
                     'security_group': primary_network_interface["security_groups"][0]["name"],
@@ -285,7 +285,7 @@ class IBMCloudInventory():
                         attributes["floating_ip"] = primary_network_interface["floating_ips"][0]["address"]
 
                 if self.args.ansible_host_variable == "private_ip_address":
-                    attributes['ansible_host'] = primary_network_interface["primary_ipv4_address"]
+                    attributes['ansible_host'] = primary_network_interface["primary_ip"]["address"]
                 elif self.args.ansible_host_variable == "floating_ip" and "floating_ips" in primary_network_interface:
                     if len(primary_network_interface["floating_ips"]) > 0:
                        attributes['ansible_host'] = primary_network_interface["floating_ips"][0]["address"]
